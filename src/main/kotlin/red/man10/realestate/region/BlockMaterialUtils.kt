@@ -124,7 +124,8 @@ object BlockMaterialUtils {
                 Material.LEVER,
                 Material.REPEATER,
                 Material.REDSTONE,
-                Material.CAKE
+                Material.CAKE,
+                Material.SWEET_BERRY_BUSH
         ).contains(block.type))return true
 
         return false
