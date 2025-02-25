@@ -296,16 +296,18 @@ object Event :Listener{
         if(disableWorld.contains(e.player.world.name))return
 
         if (e.action == Action.RIGHT_CLICK_AIR && e.action == Action.LEFT_CLICK_AIR)return
-        if (!e.hasBlock())return
-
-        val block=e.clickedBlock?:return
 
         val p = e.player
         //光るイカ墨全部弾く
         if(e.item?.type==Material.GLOW_INK_SAC&&!e.player.isOp){
             sendMessage(p,"§7光るイカ墨を使うことはできません！")
+            e.isCancelled=true
             return
         }
+
+        if (!e.hasBlock())return
+
+        val block=e.clickedBlock?:return
 
         if (e.hasBlock()&&block.state is Sign){
 
