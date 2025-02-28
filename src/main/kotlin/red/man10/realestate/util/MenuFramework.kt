@@ -154,7 +154,7 @@ open class MenuFramework(val p:Player,private val menuSize: Int, private val tit
 
         companion object{
 
-            private val BUTTON_KEY = NamespacedKey.fromString("menu-framework-key")!!
+            private val BUTTON_KEY = NamespacedKey("forest611","button_key")
 
             private val buttonMap = HashMap<String, Button>()
 
@@ -181,8 +181,7 @@ open class MenuFramework(val p:Player,private val menuSize: Int, private val tit
         fun setIcon(item:ItemStack): Button {
             buttonItem = item.clone()
             val meta = buttonItem.itemMeta
-            meta.persistentDataContainer.set(NamespacedKey.fromString("menu-framework-key")!!
-                , PersistentDataType.STRING,key)
+            meta.persistentDataContainer.set(BUTTON_KEY, PersistentDataType.STRING,key)
             buttonItem.itemMeta = meta
             set(this)
             return this
@@ -295,7 +294,7 @@ open class MenuFramework(val p:Player,private val menuSize: Int, private val tit
                 //ボタンをクリックしたインベントリがプレイヤーのインベントリの場合
                 if (e.clickedInventory == p.inventory){
                     Bukkit.broadcast(text("§c§lエラー発生。レポートをお願いします。-611"))
-                    Bukkit.getLogger().info("Man10RealEstate Menu Error (${p.name}) -611")
+                    Bukkit.getLogger().info("Man10Commerce Menu Error (${p.name}) -611")
                     item.amount = 0
                     return
                 }
