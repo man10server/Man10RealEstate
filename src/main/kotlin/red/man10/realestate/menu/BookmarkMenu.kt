@@ -22,10 +22,19 @@ class BookmarkMenu(p:Player,val page:Int = 0) : MenuFramework(p, LARGE_CHEST_SIZ
             val button = Button(Material.PAPER)
             val id = list[index]
             button.title("§bID:${id}")
+            button.lore(listOf("§e左クリック§fでブックマークした土地に飛ぶ",
+                    "§cシフト右クリック§fでブックマークを削除"))
             button.setClickAction{
-                delete(p)
-                p.closeInventory()
-                p.performCommand("mre tp $id")
+                if(it.isRightClick&&it.isShiftClick){
+                    Bookmark.changeBookmark(p,id)
+                    menu.remove(button.icon())
+                    return@setClickAction
+                }
+                if(it.isLeftClick) {
+                    delete(p)
+                    p.closeInventory()
+                    p.performCommand("mre tp $id")
+                }
             }
             addButton(button)
         }
