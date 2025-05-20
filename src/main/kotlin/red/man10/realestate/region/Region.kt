@@ -149,6 +149,7 @@ class Region {
 
             val data = RegionData(false,0.0,0.0)
 
+
             val query = "INSERT INTO region " +
                     "(server, world, name, status, price, " +
                     "x, y, z, pitch, yaw, " +
@@ -199,6 +200,7 @@ class Region {
             rg.price = price
 
             rg.data = data
+            rg.reloadBelongingCity()
 
             regionMap[id] = rg
 
@@ -540,8 +542,13 @@ class Region {
     fun canInteract(player: Player):Boolean{
         return player.isOp||ownerUUID==player.uniqueId||User.userMap.keys.contains(Pair(player.uniqueId,id))
     }
+
+    fun isResident(player:Player):Boolean{
+        return ownerUUID==player.uniqueId||User.userMap.keys.contains(Pair(player.uniqueId,id))
+    }
     ///
     //////////////////
+
 
     data class RegionData(
         var denyTeleport : Boolean,

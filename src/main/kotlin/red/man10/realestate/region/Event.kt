@@ -1,6 +1,7 @@
 package red.man10.realestate.region
 
 import net.kyori.adventure.text.Component.text
+import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -34,6 +35,7 @@ import red.man10.realestate.Command
 import red.man10.realestate.Plugin.Companion.WAND_NAME
 import red.man10.realestate.Plugin.Companion.disableWorld
 import red.man10.realestate.Plugin.Companion.serverName
+import red.man10.realestate.mreEvent.MREInteractEvent
 import red.man10.realestate.region.user.Permission
 import red.man10.realestate.region.user.User
 import red.man10.realestate.util.Utility
@@ -252,7 +254,7 @@ object Event :Listener{
         val p = e.player
 
         if (!(getCurrentRegion(e.block.location)?.canEditBlock(p)?:p.isOp)){
-            sendMessage(p,"§7このブロックは壊すことができません！")
+            sendMessage(p,"§7このブロックを壊すことはできません！")
             e.isCancelled = true
         }
     }
@@ -318,33 +320,32 @@ object Event :Listener{
             if (dye !is Colorable && e.item!!.type != Material.GLOW_INK_SAC)return
         }
 
+
+        val region=getCurrentRegion(block.location)
+        val mreInteractEvent=MREInteractEvent(e,false,region)
+
         if (BlockMaterialUtils.getAllowedBlocks(Permission.DOOR).contains(block.type)){
-            if(!(getCurrentRegion(block.location)?.canUseDoor(p)?:p.isOp)) {
-                sendMessage(p, "§7このブロックを触ることはできません！")
-                e.isCancelled = true
+
+            if(!(region?.canUseDoor(p)?:p.isOp)) {
+                mreInteractEvent.isCancelled=true
             }
-            return
+        }
+        else if (BlockMaterialUtils.getAllowedBlocks(Permission.INVENTORY).contains(e.clickedBlock!!.type)){
+            if (!(region?.canOpenContainer(p)?:p.isOp)){
+                mreInteractEvent.isCancelled=true
+            }
+        }
+        else if(BlockMaterialUtils.isInteractive(block)&&!(region?.canInteract(p)?:p.isOp)){
+            mreInteractEvent.isCancelled=true
+        }
+        else if(e.action==Action.PHYSICAL&&!(region?.canEditBlock(p)?:p.isOp)){
+            mreInteractEvent.isCancelled=true
         }
 
-        if (BlockMaterialUtils.getAllowedBlocks(Permission.INVENTORY).contains(e.clickedBlock!!.type)){
-            if (!(getCurrentRegion(block.location)?.canOpenContainer(p)?:p.isOp)){
-                sendMessage(p,"§7このブロックを触ることはできません！")
-                e.isCancelled = true
-            }
-            return
-        }
-
-        //お試し
-        //うまくいかなかったら下にコメントアウトしてるやつに戻す
-        if(BlockMaterialUtils.isInteractive(block)&&!(getCurrentRegion(block.location)?.canInteract(p)?:p.isOp)){
+        Bukkit.getPluginManager().callEvent(mreInteractEvent)
+        if(mreInteractEvent.isCancelled){
             sendMessage(p,"§7このブロックを触ることはできません！")
             e.isCancelled = true
-            return
-        }
-
-        if(e.action==Action.PHYSICAL&&!(getCurrentRegion(block.location)?.canEditBlock(p)?:p.isOp)){
-            e.isCancelled=true
-            return
         }
 
 //        if (!hasPermission(p,e.clickedBlock!!.location,Permission.DOOR)) {
