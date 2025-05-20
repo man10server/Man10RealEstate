@@ -24,6 +24,7 @@ import org.bukkit.event.hanging.HangingBreakByEntityEvent
 import org.bukkit.event.hanging.HangingPlaceEvent
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent
 import org.bukkit.event.player.PlayerBucketEmptyEvent
+import org.bukkit.event.player.PlayerBucketFillEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerJoinEvent
@@ -288,6 +289,18 @@ object Event :Listener{
 
         if (!(getCurrentRegion(e.block.location)?.canEditBlock(p)?:p.isOp)) {
             sendMessage(p,"§7ここに水などを置くことはできません！")
+            e.isCancelled = true
+
+        }
+    }
+
+    @EventHandler
+    fun onPlayerBucketFillE(e:PlayerBucketFillEvent){
+        if(disableWorld.contains(e.player.world.name))return
+        val p = e.player
+
+        if (!(getCurrentRegion(e.block.location)?.canEditBlock(p)?:p.isOp)) {
+            sendMessage(p,"§7ここでバケツを使うことはできません！")
             e.isCancelled = true
 
         }
