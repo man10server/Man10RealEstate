@@ -1,6 +1,7 @@
 package red.man10.realestate.region
 
 import net.kyori.adventure.text.Component.text
+import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -23,6 +24,7 @@ import org.bukkit.event.hanging.HangingBreakByEntityEvent
 import org.bukkit.event.hanging.HangingPlaceEvent
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent
 import org.bukkit.event.player.PlayerBucketEmptyEvent
+import org.bukkit.event.player.PlayerBucketFillEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerJoinEvent
@@ -34,6 +36,7 @@ import red.man10.realestate.Command
 import red.man10.realestate.Plugin.Companion.WAND_NAME
 import red.man10.realestate.Plugin.Companion.disableWorld
 import red.man10.realestate.Plugin.Companion.serverName
+import red.man10.realestate.mreEvent.MREInteractEvent
 import red.man10.realestate.region.user.Permission
 import red.man10.realestate.region.user.User
 import red.man10.realestate.util.Utility
@@ -252,7 +255,7 @@ object Event :Listener{
         val p = e.player
 
         if (!(getCurrentRegion(e.block.location)?.canEditBlock(p)?:p.isOp)){
-            sendMessage(p,"§7このブロックは壊すことができません！")
+            sendMessage(p,"§7このブロックを壊すことはできません！")
             e.isCancelled = true
         }
     }
@@ -291,21 +294,35 @@ object Event :Listener{
         }
     }
 
+    @EventHandler
+    fun onPlayerBucketFillE(e:PlayerBucketFillEvent){
+        if(disableWorld.contains(e.player.world.name))return
+        val p = e.player
+
+        if (!(getCurrentRegion(e.block.location)?.canEditBlock(p)?:p.isOp)) {
+            sendMessage(p,"§7ここでバケツを使うことはできません！")
+            e.isCancelled = true
+
+        }
+    }
+
     @EventHandler(priority = EventPriority.LOWEST)
     fun interactEvent(e:PlayerInteractEvent){
         if(disableWorld.contains(e.player.world.name))return
 
         if (e.action == Action.RIGHT_CLICK_AIR && e.action == Action.LEFT_CLICK_AIR)return
-        if (!e.hasBlock())return
-
-        val block=e.clickedBlock?:return
 
         val p = e.player
         //光るイカ墨全部弾く
         if(e.item?.type==Material.GLOW_INK_SAC&&!e.player.isOp){
             sendMessage(p,"§7光るイカ墨を使うことはできません！")
+            e.isCancelled=true
             return
         }
+
+        if (!e.hasBlock())return
+
+        val block=e.clickedBlock?:return
 
         if (e.hasBlock()&&block.state is Sign){
 
@@ -316,33 +333,32 @@ object Event :Listener{
             if (dye !is Colorable && e.item!!.type != Material.GLOW_INK_SAC)return
         }
 
+
+        val region=getCurrentRegion(block.location)
+        val mreInteractEvent=MREInteractEvent(e,false,region)
+
         if (BlockMaterialUtils.getAllowedBlocks(Permission.DOOR).contains(block.type)){
-            if(!(getCurrentRegion(block.location)?.canUseDoor(p)?:p.isOp)) {
-                sendMessage(p, "§7このブロックを触ることはできません！")
-                e.isCancelled = true
+
+            if(!(region?.canUseDoor(p)?:p.isOp)) {
+                mreInteractEvent.isCancelled=true
             }
-            return
+        }
+        else if (BlockMaterialUtils.getAllowedBlocks(Permission.INVENTORY).contains(e.clickedBlock!!.type)){
+            if (!(region?.canOpenContainer(p)?:p.isOp)){
+                mreInteractEvent.isCancelled=true
+            }
+        }
+        else if(BlockMaterialUtils.isInteractive(block)&&!(region?.canInteract(p)?:p.isOp)){
+            mreInteractEvent.isCancelled=true
+        }
+        else if(e.action==Action.PHYSICAL&&!(region?.canEditBlock(p)?:p.isOp)){
+            mreInteractEvent.isCancelled=true
         }
 
-        if (BlockMaterialUtils.getAllowedBlocks(Permission.INVENTORY).contains(e.clickedBlock!!.type)){
-            if (!(getCurrentRegion(block.location)?.canOpenContainer(p)?:p.isOp)){
-                sendMessage(p,"§7このブロックを触ることはできません！")
-                e.isCancelled = true
-            }
-            return
-        }
-
-        //お試し
-        //うまくいかなかったら下にコメントアウトしてるやつに戻す
-        if(BlockMaterialUtils.isInteractive(block)&&!(getCurrentRegion(block.location)?.canInteract(p)?:p.isOp)){
+        Bukkit.getPluginManager().callEvent(mreInteractEvent)
+        if(mreInteractEvent.isCancelled){
             sendMessage(p,"§7このブロックを触ることはできません！")
             e.isCancelled = true
-            return
-        }
-
-        if(e.action==Action.PHYSICAL&&!(getCurrentRegion(block.location)?.canEditBlock(p)?:p.isOp)){
-            e.isCancelled=true
-            return
         }
 
 //        if (!hasPermission(p,e.clickedBlock!!.location,Permission.DOOR)) {

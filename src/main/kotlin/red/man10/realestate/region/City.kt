@@ -149,7 +149,7 @@ class City constructor(val cityId:String){
                 if (!Plugin.bank.withdraw(rg.ownerUUID!!,amount,
                         "Man10RealEstate Tax","税金の支払い(延滞)")){
                     Logger.logger(rg.ownerUUID!!,"税金の支払い失敗 初期化",rg.id)
-                    rg.init()
+                    rg.initialize()
                     continue
                 }
                 rg.taxStatus = Region.TaxStatus.SUCCESS

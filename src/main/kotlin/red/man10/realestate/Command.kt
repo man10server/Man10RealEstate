@@ -551,7 +551,7 @@ object Command:CommandExecutor {
                         return false
                     }
 
-                    rg.init(tax = rg.data.tax)
+                    rg.initialize(tax = rg.data.tax)
 
                     sendMessage(sender,"§c§l手放しました")
                 }
@@ -618,6 +618,7 @@ object Command:CommandExecutor {
                     §e§l/mreop denytp <regionID> : 指定リージョンのmre tpの規制を編集"
                     §e§l/mreop reloadCityData <regionID/all> : 指定リージョンの所属している土地情報をリロードする"
                     §e§l/mreop citylimit <city名> <数字> : 指定都市の所持数上限を設定する"
+                    §e§l/mreop payTaxFromWarnRegion : 手動で滞納税金を徴収する"
                 """.trimIndent())
 
                 return true
@@ -1050,13 +1051,13 @@ object Command:CommandExecutor {
                     val price =  args[2].toDouble()
                     if(id!=null) {
                         val rg = Region.regionMap[id] ?: return false
-                        rg.init(Region.Status.ON_SALE, price)
+                        rg.initialize(Region.Status.ON_SALE, price)
                     }
                     else{
                         City.getPartialMatchCities(args[2]).forEach { city->
                             Region.regionMap.filter { it.value.data.city==city.cityId }.forEach { (i,region) ->
                                 sender.sendMessage("§aID${i}の土地を初期化")
-                                region.init(Region.Status.ON_SALE,price)
+                                region.initialize(Region.Status.ON_SALE,price)
                             }
                         }
                     }
@@ -1460,6 +1461,14 @@ object Command:CommandExecutor {
                         }
                     }
 
+                }
+
+                "payTaxFromWarnRegion"->{
+                    Plugin.async.execute {
+                        sendMessage(sender, "徴収中...")
+                        City.payTaxFromWarnRegion()
+                        sendMessage(sender, "徴収中が完了しました")
+                    }
                 }
 
 

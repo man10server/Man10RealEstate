@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
+import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemFlag
@@ -91,8 +92,8 @@ open class MenuFramework(val p:Player,private val menuSize: Int, private val tit
         Bukkit.getScheduler().runTask(instance,Runnable {
             menu = Bukkit.createInventory(null,menuSize, text(title))
             init()
-            p.openInventory(menu)
             push(p,this)
+            p.openInventory(menu)
         })
     }
 
@@ -260,6 +261,26 @@ open class MenuFramework(val p:Player,private val menuSize: Int, private val tit
     object MenuListener:Listener{
 
         @EventHandler
+        fun openInv(e:InventoryOpenEvent){
+
+            if(e.player !is Player)return
+
+            val player=e.player as Player
+
+            val menu = peek(player) ?:return
+
+            //メニューが違う場合は無視
+            if (e.view.title != menu.title){
+                delete(player)
+                e.isCancelled = true
+                player.closeInventory()
+                player.sendMessage("§c§lメニューを開き直してください")
+                return
+            }
+
+        }
+
+        @EventHandler
         fun clickEvent(e:InventoryClickEvent){
 
             val p = e.whoClicked
@@ -278,8 +299,9 @@ open class MenuFramework(val p:Player,private val menuSize: Int, private val tit
                     return
                 }
 
-                val button = Button.get(item)!!
-                button.click(e)
+                val button = Button.get(item)?.let {
+                    it.click(e)
+                }
             }
 
             val menu = peek(p) ?:return
