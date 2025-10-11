@@ -6,12 +6,9 @@ import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.block.Block
-import org.bukkit.block.Container
 import org.bukkit.block.Sign
-import org.bukkit.block.data.Openable
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
-import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
@@ -22,14 +19,8 @@ import org.bukkit.event.block.SignChangeEvent
 import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.hanging.HangingBreakByEntityEvent
 import org.bukkit.event.hanging.HangingPlaceEvent
-import org.bukkit.event.player.PlayerArmorStandManipulateEvent
-import org.bukkit.event.player.PlayerBucketEmptyEvent
-import org.bukkit.event.player.PlayerBucketFillEvent
-import org.bukkit.event.player.PlayerInteractEntityEvent
-import org.bukkit.event.player.PlayerInteractEvent
-import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.event.player.*
 import org.bukkit.inventory.ItemStack
-import org.bukkit.material.Attachable
 import org.bukkit.material.Colorable
 import org.bukkit.persistence.PersistentDataType
 import red.man10.realestate.Command
@@ -38,7 +29,6 @@ import red.man10.realestate.Plugin.Companion.disableWorld
 import red.man10.realestate.Plugin.Companion.serverName
 import red.man10.realestate.mreEvent.MREInteractEvent
 import red.man10.realestate.region.user.Permission
-import red.man10.realestate.region.user.User
 import red.man10.realestate.util.Utility
 import red.man10.realestate.util.Utility.sendMessage
 import tororo1066.itemframeprotector.api.event.IFPCause
@@ -117,8 +107,6 @@ object Event :Listener{
     fun joinEvent(e:PlayerJoinEvent){
         val p = e.player
         Bookmark.asyncLoadBookmark(p)
-        Region.asyncLoginProcess(p)
-        User.asyncLoginProcess(p)
     }
 
     /**

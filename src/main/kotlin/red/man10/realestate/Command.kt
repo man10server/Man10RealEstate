@@ -14,7 +14,6 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
-import red.man10.man10score.ScoreDatabase
 import red.man10.realestate.Plugin.Companion.WAND_NAME
 import red.man10.realestate.Plugin.Companion.async
 import red.man10.realestate.Plugin.Companion.disableWorld
@@ -192,14 +191,6 @@ object Command:CommandExecutor {
                     }
 
                     async.execute {
-                        val city = City.where(data.teleport)?:return@execute
-                        val score = ScoreDatabase.getScore(user.uniqueId)
-
-                        if (city.data.liveScore>score){
-                            sendMessage(sender,"ユーザーのスコアが足りません")
-                            return@execute
-                        }
-
                         sendMessage(sender,"§a§l現在承諾待ちです....")
 
                         //住人側へのメッセージ
@@ -307,11 +298,6 @@ object Command:CommandExecutor {
                     if (p == null){
                         sendMessage(sender,"§c§lオンラインのユーザーを入力してください")
                         return true
-                    }
-
-                    if (city.data.ownerScore > ScoreDatabase.getScore(p.uniqueId)){
-                        sendMessage(sender,"ユーザーのスコアが足りません")
-                        return false
                     }
 
                     sendMessage(sender,"現在承認待ち・・・")

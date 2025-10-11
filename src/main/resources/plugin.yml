@@ -3,7 +3,7 @@ version: 1.0
 main: red.man10.realestate.Plugin
 api-version: 1.21
 prefix: Man10RealEstate
-authors: [takatronix,forest611]
+authors: [takatronix, forest611, JToTl]
 description: Man10 Real Estate Plugin
 softdepend:
   - Man10CommonLibs

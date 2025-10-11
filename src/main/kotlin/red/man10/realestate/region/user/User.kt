@@ -2,16 +2,13 @@ package red.man10.realestate.region.user
 
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
-import red.man10.man10score.ScoreDatabase
 import red.man10.realestate.Plugin
-import red.man10.realestate.region.City
 import red.man10.realestate.region.Region
 import red.man10.realestate.util.MySQLManager
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.ArrayList
 
 //居住者に関するクラス
 class User(val uuid: UUID,val region:Region) {
@@ -76,20 +73,6 @@ class User(val uuid: UUID,val region:Region) {
             MySQLManager.mysqlQueue.add("DELETE FROM `region_user` WHERE `region_id`=$regionId;")
             fromRegion(regionId).forEach { userMap.remove(Pair(it.uuid,it.region.id)) }
         }
-
-        fun asyncLoginProcess(p:Player){
-            Plugin.async.execute {
-                val data = userMap.filterValues { it.uuid == p.uniqueId }
-                val score = ScoreDatabase.getScore(p.uniqueId)
-
-                data.forEach {
-                    val id = it.key.second
-                    val city = City.where(Region.regionMap[id]!!.teleport)!!
-                    if (city.data.liveScore>score){ it.value.asyncDelete() }
-                }
-            }
-        }
-
     }
 
     var status = "Share"

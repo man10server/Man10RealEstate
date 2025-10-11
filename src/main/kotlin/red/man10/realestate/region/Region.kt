@@ -4,7 +4,6 @@ import com.google.gson.Gson
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Player
-import red.man10.man10score.ScoreDatabase
 import red.man10.realestate.Command
 import red.man10.realestate.Plugin
 import red.man10.realestate.region.user.Permission
@@ -123,25 +122,6 @@ class Region {
                 rs.close()
                 sql.close()
                 finishLoading.set(true)
-            }
-        }
-
-
-        //ログイン時にスコアを確認
-        fun asyncLoginProcess(p:Player){
-            Plugin.async.execute {
-                val data = regionMap.filterValues { it.ownerUUID == p.uniqueId }
-                val score = ScoreDatabase.getScore(p.uniqueId)
-                data.forEach {
-                    val city = City.where(it.value.teleport)!!
-                    if (city.data.ownerScore>score){
-                        it.value.status = Status.LOCK
-                    }else{
-                        if(it.value.status==Status.LOCK){
-                        it.value.status = Status.PROTECTED
-                        }
-                    }
-                }
             }
         }
 
@@ -264,8 +244,6 @@ class Region {
     fun buy(p: Player){
 
         val city = City.where(teleport)
-        val score = ScoreDatabase.getScore(p.uniqueId)
-
         if (city == null){
             Utility.sendMessage(p,"§c§l都市の外に土地があります。運営に報告してください")
             return
@@ -283,11 +261,6 @@ class Region {
 
         if (p.uniqueId == ownerUUID){
             Utility.sendMessage(p, "§c§lあなたはこの土地のオーナーです！")
-            return
-        }
-
-        if (city.data.ownerScore > score){
-            Utility.sendMessage(p, "§c§lあなたにはこの土地を買うためのスコアが足りません！")
             return
         }
 
