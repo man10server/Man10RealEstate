@@ -1,7 +1,7 @@
 name: Man10RealEstate
 version: 1.0
 main: red.man10.realestate.Plugin
-api-version: 1.19
+api-version: 1.21
 prefix: Man10RealEstate
 authors: [takatronix,forest611]
 description: Man10 Real Estate Plugin
