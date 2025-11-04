@@ -5,7 +5,6 @@ import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
 import org.apache.commons.lang.math.NumberUtils
 import org.bukkit.Bukkit
-import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.command.Command
@@ -22,7 +21,6 @@ import red.man10.realestate.Plugin.Companion.prefix
 import red.man10.realestate.Plugin.Companion.vault
 import red.man10.realestate.menu.MainMenu
 import red.man10.realestate.region.*
-import red.man10.realestate.region.user.Permission
 import red.man10.realestate.region.user.User
 import red.man10.realestate.util.MySQLManager
 import red.man10.realestate.util.Utility
@@ -165,7 +163,7 @@ object Command:CommandExecutor {
 
                     val id = args[1].toIntOrNull()?:return false
 
-                    if (!hasRegionPermission(sender,id)){ return false }
+                    if (!Utility.hasRegionPermission(sender, id)){ return false }
 
                     val data = Region.regionMap[id]
 
@@ -243,7 +241,7 @@ object Command:CommandExecutor {
 
                     val id = args[1].toIntOrNull()?:return false
 
-                    if (!hasRegionPermission(sender,id))return false
+                    if (!Utility.hasRegionPermission(sender, id))return false
 
                     val p = Bukkit.getPlayer(args[2])
 
@@ -266,7 +264,7 @@ object Command:CommandExecutor {
                     val id = args[1].toIntOrNull()?:return false
                     val span = args[2].toIntOrNull()?:return false
 
-                    if (!hasRegionPermission(sender,id))return false
+                    if (!Utility.hasRegionPermission(sender, id))return false
 
                     val rg = Region.regionMap[id]?:return false
                     rg.span = span
@@ -342,7 +340,7 @@ object Command:CommandExecutor {
 
                     val id = args[1].toIntOrNull()?:return false
 
-                    if (!hasRegionPermission(sender,id))return false
+                    if (!Utility.hasRegionPermission(sender, id))return false
 
                     val loc = sender.location
 
@@ -368,7 +366,7 @@ object Command:CommandExecutor {
 
                     val id = args[1].toIntOrNull()?:return false
 
-                    if (!hasRegionPermission(sender,id))return false
+                    if (!Utility.hasRegionPermission(sender, id))return false
 
                     val rent = args[3].toDoubleOrNull()
                     val p = Bukkit.getPlayer(args[2])
@@ -425,7 +423,7 @@ object Command:CommandExecutor {
                     val id = args[1].toIntOrNull()?:return false
                     val rg = Region.regionMap[id]?:return false
 
-                    if (!hasRegionPermission(sender,id))return false
+                    if (!Utility.hasRegionPermission(sender, id))return false
 
                     val price = args[2].toDoubleOrNull()
 
@@ -446,34 +444,54 @@ object Command:CommandExecutor {
 
                     if (args.size < 2)return false
 
-                    val id = args[1].toIntOrNull()
+                    if (args.size == 3) {
 
-                    if (id == null){
-                        sendMessage(sender,"§c§l数字を入力してください")
-                        return true
+                        if (!Plugin.supportedProxy) {
+                            sendMessage(sender, "§c§l他サーバーへのテレポートは対応していません")
+                            return true
+                        }
+
+                        val serverName = args[1]
+                        if (!Plugin.otherMREServers.contains(serverName)) {
+                            sendMessage(sender, "§c§l指定されたサーバーは存在しません")
+                            return true
+                        }
+
+                        val id = args[2].toIntOrNull()
+                        if (id == null) {
+                            sendMessage(sender, "§c§l数字を入力してください")
+                            return true
+                        }
+
+                        sendMessage(sender, "§a§lサーバーへリクエストを送信しました。しばらくお待ちください...")
+
+                        ProxyTeleport.sendTeleportRequest(
+                            sender,
+                            serverName,
+                            id
+                        )
+                    } else {
+                        val id = args[1].toIntOrNull()
+
+                        if (id == null){
+                            sendMessage(sender,"§c§l数字を入力してください")
+                            return true
+                        }
+                        val rg = Region.regionMap[id]
+
+                        if (rg==null){
+                            sendMessage(sender,"§c§l指定したIDの土地は存在しません")
+                            return true
+                        }
+
+                        if (!Utility.hasRegionPermission(sender, id) && rg.data.denyTeleport){
+                            sendMessage(sender,"この土地はテレポートを許可されていません")
+                            return true
+                        }
+
+                        rg.teleport(sender)
                     }
-                    val rg = Region.regionMap[id]
-
-                    if (rg==null){
-                        sendMessage(sender,"§c§l指定したIDの土地は存在しません")
-                        return true
-                    }
-
-                    if (!hasRegionPermission(sender,id) && rg.data.denyTeleport){
-                        sendMessage(sender,"この土地はテレポートを許可されていません")
-                        return true
-                    }
-
-                    if (rg.server != Plugin.serverName){
-                        sender.performCommand("warpsystem:tp" +
-                                " ${sender.name} ${rg.teleport.x} ${rg.teleport.y} ${rg.teleport.z} ${rg.teleport.yaw} ${rg.teleport.pitch}" +
-                                " ${rg.server} ${rg.teleport.world.name}")
-                        return true
-                    }
-
-                    sender.teleport(rg.teleport)
                     return true
-
                 }
 
                 "confirminit" -> {
@@ -1485,21 +1503,4 @@ object Command:CommandExecutor {
     }
 
 
-    /**
-     * 指定リージョンの編集権限を持っているかどうか
-     */
-    private fun hasRegionPermission(p:Player,id:Int):Boolean{
-
-        if (p.hasPermission(OP))return true
-
-        val data = Region.regionMap[id]?:return false
-
-        if (data.status == Region.Status.LOCK)return false
-
-        if (data.ownerUUID == p.uniqueId)return true
-
-        val userData = User.get(p,id)?:return false
-
-        return userData.permissions.contains(Permission.ALL) && userData.status == "Share"
-    }
 }

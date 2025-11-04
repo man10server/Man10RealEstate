@@ -8,3 +8,5 @@ disableWorld:
   -
 containerAmount: 24
 server: paper
+otherMREServers:
+  -

@@ -44,9 +44,17 @@ class Plugin : JavaPlugin(), Listener {
 
         private var payTax = true
 
+        var supportedProxy = false
+        var otherMREServers = listOf<String>()
     }
 
     override fun onEnable() { // Plugin startup logic
+        if (supportedProxy()){
+            server.messenger.registerOutgoingPluginChannel(this, "BungeeCord")
+            server.pluginManager.registerEvents(ProxyTeleport,this)
+            supportedProxy = true
+        }
+
         saveDefaultConfig()
 
         vault = VaultManager(this)
@@ -91,6 +99,20 @@ class Plugin : JavaPlugin(), Listener {
         saveResource("config.yml", false)
         ownableCityNum=config.getInt("ownableCityNum",-1)
         useIFP=config.getBoolean("useIFP",true)
+        otherMREServers=config.getStringList("otherMREServers")
+    }
+
+    private fun supportedProxy(): Boolean{
+        val spigotConfig = server.spigot().spigotConfig
+        val paperConfig = server.spigot().paperConfig
+        if (spigotConfig.getBoolean("settings.bungeecord", false)){
+            return true
+        }
+        if (paperConfig.getBoolean("proxies.velocity.enabled", false)) {
+            return true
+        }
+
+        return false
     }
 
     private fun runDailyTask(){
