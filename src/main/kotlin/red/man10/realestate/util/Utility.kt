@@ -7,9 +7,12 @@ import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
+import red.man10.realestate.Command
 import red.man10.realestate.Plugin
 import red.man10.realestate.Plugin.Companion.prefix
 import red.man10.realestate.region.Region
+import red.man10.realestate.region.user.Permission
+import red.man10.realestate.region.user.User
 import kotlin.math.abs
 
 object Utility {
@@ -74,4 +77,21 @@ object Utility {
         return cities
     }
 
+    /**
+     * 指定リージョンの編集権限を持っているかどうか
+     */
+    fun hasRegionPermission(p:Player,id:Int):Boolean{
+
+        if (p.hasPermission(Command.OP))return true
+
+        val data = Region.regionMap[id]?:return false
+
+        if (data.status == Region.Status.LOCK)return false
+
+        if (data.ownerUUID == p.uniqueId)return true
+
+        val userData = User.get(p,id)?:return false
+
+        return userData.permissions.contains(Permission.ALL) && userData.status == "Share"
+    }
 }

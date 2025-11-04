@@ -519,6 +519,10 @@ class Region {
     fun isResident(player:Player):Boolean{
         return ownerUUID==player.uniqueId||User.userMap.keys.contains(Pair(player.uniqueId,id))
     }
+
+    fun teleport(player: Player){
+        player.teleport(teleport)
+    }
     ///
     //////////////////
 
