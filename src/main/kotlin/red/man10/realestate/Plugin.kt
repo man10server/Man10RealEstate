@@ -117,7 +117,7 @@ class Plugin : JavaPlugin(), Listener {
                 //滞納支払日
                 if (isChangeDay && isTaxDay){
                     Logger.logger("滞納日を検知")
-                    City.payTaxFromWarnRegion()
+                    if (payTax){City.payTaxFromWarnRegion()}
                 }
 
                 //週変更(月曜日)
