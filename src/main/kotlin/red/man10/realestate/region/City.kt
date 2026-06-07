@@ -129,6 +129,7 @@ class City constructor(val cityId:String){
                     rg.asyncSave()
                     continue
                 }
+                Logger.logger(rg.ownerUUID!!,"税金の支払い成功 税額:$amount 残高:${result.balance}",rg.id)
                 rg.taxStatus = Region.TaxStatus.SUCCESS
                 rg.asyncSave()
                 continue
@@ -156,6 +157,7 @@ class City constructor(val cityId:String){
                     rg.initialize()
                     continue
                 }
+                Logger.logger(rg.ownerUUID!!,"滞納税金の支払い成功 税額:$amount 残高:${result.balance}",rg.id)
                 rg.taxStatus = Region.TaxStatus.SUCCESS
                 rg.asyncSave()
                 continue
