@@ -144,6 +144,12 @@ class Plugin : JavaPlugin(), Listener {
                     Logger.logger("日付の変更を検知")
                     lastDay = LocalDateTime.now()
                     Region.regionMap.filterValues { it.span == 2 }.values.forEach { it.payRent() }
+
+                    //Bankエラーで保留中の土地を毎日リトライ(支払日以降に発生するため自然に支払日以降のみ動作)
+                    if (payTax){
+                        City.payTax(Region.TaxStatus.ERROR)
+                        City.payTaxFromWarnRegion(Region.TaxStatus.WARN_ERROR)
+                    }
                 }
 
                 //滞納支払日

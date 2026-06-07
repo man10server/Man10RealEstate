@@ -249,7 +249,7 @@ class Region {
             return
         }
 
-        if (taxStatus == TaxStatus.WARN){
+        if (taxStatus == TaxStatus.WARN || taxStatus == TaxStatus.WARN_ERROR){
             Utility.sendMessage(p,"§c§lこの土地は税金滞納のため購入ができません")
             return
         }
@@ -442,8 +442,11 @@ class Region {
         Utility.sendMessage(p, "§aオーナー:${ownerName}")
         Utility.sendMessage(p, "§a値段:${Utility.format(price)}")
         Utility.sendMessage(p, "§a税額:${Utility.format(City.getTax(id))}")
-        if (taxStatus == Region.TaxStatus.WARN){
+        if (taxStatus == Region.TaxStatus.WARN || taxStatus == Region.TaxStatus.WARN_ERROR){
             Utility.sendMessage(p, "§c§l税金が未払いです")
+        }
+        if (taxStatus == Region.TaxStatus.ERROR){
+            Utility.sendMessage(p, "§e§l税金の支払いがシステムエラーで保留中です")
         }
         Utility.sendMessage(p, "§a==========================================")
 
@@ -538,7 +541,9 @@ class Region {
     enum class TaxStatus(val value : String){
         SUCCESS("SUCCESS"),
         WARN("WARN"),
-        FREE("FREE")
+        FREE("FREE"),
+        ERROR("ERROR"),         //通常徴収中のBankエラー(リトライ対象/通常税額)
+        WARN_ERROR("WARN_ERROR")//滞納徴収中のBankエラー(リトライ対象/ペナルティ税額)
     }
 
     enum class Status(val value : String){

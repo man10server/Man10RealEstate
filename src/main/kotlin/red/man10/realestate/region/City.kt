@@ -127,9 +127,11 @@ class City constructor(val cityId:String){
                         "Man10RealEstate Tax","税金の支払い")
                 if (!result.success){
                     val reason = "${result.errorMessage}(status=${result.httpStatus})"
-                    //409は残高不足。それ以外(API障害等)はペナルティを科さずスキップする
+                    //409は残高不足→滞納(WARN)。それ以外(Bank障害等)はERRORにして日次リトライ対象にする
                     if (result.httpStatus != 409){
-                        Logger.logger(rg.ownerUUID!!,"税金の支払い保留 理由:$reason",rg.id)
+                        Logger.logger(rg.ownerUUID!!,"税金の支払いエラー(リトライ対象) 理由:$reason",rg.id)
+                        rg.taxStatus = Region.TaxStatus.ERROR
+                        rg.asyncSave()
                         continue
                     }
                     Logger.logger(rg.ownerUUID!!,"滞納税金の支払い失敗 理由:$reason",rg.id)
@@ -147,9 +149,9 @@ class City constructor(val cityId:String){
             Bukkit.getLogger().warning("税金の支払い完了")
         }
 
-        fun payTaxFromWarnRegion(){
-            //警告つきの土地のみ
-            val rgList = Region.regionMap.values.filter { rg -> rg.taxStatus == Region.TaxStatus.WARN && rg.ownerUUID != null }
+        fun payTaxFromWarnRegion(targetStatus: Region.TaxStatus = Region.TaxStatus.WARN){
+            //指定ステータス(滞納系)かつオーナーがいる土地
+            val rgList = Region.regionMap.values.filter { rg -> rg.taxStatus == targetStatus && rg.ownerUUID != null }
 
             Bukkit.getLogger().warning("滞納都市の税金の支払いを行います")
 
@@ -164,9 +166,11 @@ class City constructor(val cityId:String){
                         "Man10RealEstate Tax","税金の支払い(延滞)")
                 if (!result.success){
                     val reason = "${result.errorMessage}(status=${result.httpStatus})"
-                    //409は残高不足。それ以外(API障害等)はペナルティ(初期化)を科さずスキップする
+                    //409は残高不足→初期化(没収)。それ以外(Bank障害等)はWARN_ERRORにして日次リトライ対象にする
                     if (result.httpStatus != 409){
-                        Logger.logger(rg.ownerUUID!!,"滞納税金の支払い保留 理由:$reason",rg.id)
+                        Logger.logger(rg.ownerUUID!!,"滞納税金の支払いエラー(リトライ対象) 理由:$reason",rg.id)
+                        rg.taxStatus = Region.TaxStatus.WARN_ERROR
+                        rg.asyncSave()
                         continue
                     }
                     Logger.logger(rg.ownerUUID!!,"税金の支払い失敗 初期化 理由:$reason",rg.id)
@@ -192,7 +196,9 @@ class City constructor(val cityId:String){
             val width = rg.startPosition.first.coerceAtLeast(rg.endPosition.first) - rg.startPosition.first.coerceAtMost(rg.endPosition.first) + 1
             val height = rg.startPosition.third.coerceAtLeast(rg.endPosition.third) - rg.startPosition.third.coerceAtMost(rg.endPosition.third) + 1
 
-            return if (rg.taxStatus == Region.TaxStatus.WARN) width * height * city.data.tax * Plugin.penalty else width * height * city.data.tax
+            //WARN系(滞納)はペナルティ税額、それ以外(SUCCESS/ERROR)は通常税額
+            val penalized = rg.taxStatus == Region.TaxStatus.WARN || rg.taxStatus == Region.TaxStatus.WARN_ERROR
+            return if (penalized) width * height * city.data.tax * Plugin.penalty else width * height * city.data.tax
         }
     }
 

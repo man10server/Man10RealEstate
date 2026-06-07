@@ -288,7 +288,7 @@ object Command:CommandExecutor {
 
                     val p = Bukkit.getPlayer(args[2])
 
-                    if (rg.taxStatus == Region.TaxStatus.WARN){
+                    if (rg.taxStatus == Region.TaxStatus.WARN || rg.taxStatus == Region.TaxStatus.WARN_ERROR){
                         sendMessage(sender,"§c§l税金滞納中はオーナーの譲渡はできません")
                         return true
                     }
@@ -615,7 +615,7 @@ object Command:CommandExecutor {
                     §e§l/mreop init <id> <price> : 指定リージョンを初期化する
                     §e§l/mreop maxuser <city> <int> : 指定都市の上限人数を設定する
                     §e§l/mreop setprice <id/city名> <price> : 指定土地/都市内の土地全ての値段を変更する
-                    §e§l/mreop starttax : 手動で税金を徴収する
+                    §e§l/mreop starttax <TaxStatus> : 指定ステータスの土地の税金を手動徴収する(省略時SUCCESS)
                     §e§l/mreop search : 指定ユーザーの持っている土地を確認する"
                     §e§l/mreop editcity <city> : 指定都市の編集コマンド一覧を表示する"
                     §e§l/mreop editrg <city> : 指定リージョンの編集コマンド一覧を表示する"
@@ -1071,10 +1071,26 @@ object Command:CommandExecutor {
                 }
 
                 "starttax" ->{
+                    //省略時はSUCCESS。任意のTaxStatusを指定可能
+                    val status = if (args.size >= 2){
+                        try {
+                            Region.TaxStatus.valueOf(args[1].uppercase())
+                        }catch (e:IllegalArgumentException){
+                            sendMessage(sender,"§c§l不正なTaxStatusです。指定可能: ${Region.TaxStatus.values().joinToString(",") { it.name }}")
+                            return true
+                        }
+                    }else{
+                        Region.TaxStatus.SUCCESS
+                    }
 
                     async.execute {
-                        sender.sendMessage("税金の徴収開始")
-                        City.payTax()
+                        sender.sendMessage("税金の徴収開始(対象:$status)")
+                        //WARN系(滞納)はペナルティ/没収ロジック、それ以外は通常徴収
+                        if (status == Region.TaxStatus.WARN || status == Region.TaxStatus.WARN_ERROR){
+                            City.payTaxFromWarnRegion(status)
+                        }else{
+                            City.payTax(status)
+                        }
                         sender.sendMessage("税金の徴収完了")
                     }
                 }
