@@ -1102,7 +1102,9 @@ object Command:CommandExecutor {
                 "starttaxwarn" ->{
                     async.execute{
                         sender.sendMessage("税金の徴収開始")
-                        City.payTaxFromWarnRegion()
+                        //滞納(WARN)とBankエラー保留中の滞納(WARN_ERROR)の両方をペナルティ税額で徴収
+                        City.payTaxFromWarnRegion(Region.TaxStatus.WARN)
+                        City.payTaxFromWarnRegion(Region.TaxStatus.WARN_ERROR)
                         sender.sendMessage("税金の徴収完了")
                     }
                 }
