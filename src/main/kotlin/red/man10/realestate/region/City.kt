@@ -111,9 +111,9 @@ class City constructor(val cityId:String){
             return null
         }
 
-        fun payTax(){
-            //税金支払いが必要でかつ、滞納してない土地
-            val rgList = Region.regionMap.values.filter { rg -> rg.taxStatus == Region.TaxStatus.SUCCESS && rg.ownerUUID != null }
+        fun payTax(targetStatus: Region.TaxStatus = Region.TaxStatus.SUCCESS){
+            //指定ステータスかつオーナーがいる土地
+            val rgList = Region.regionMap.values.filter { rg -> rg.taxStatus == targetStatus && rg.ownerUUID != null }
 
             Bukkit.getLogger().warning("税金の支払いを行います")
 
