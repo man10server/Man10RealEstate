@@ -1071,26 +1071,30 @@ object Command:CommandExecutor {
                 }
 
                 "starttax" ->{
-                    //省略時はSUCCESS。任意のTaxStatusを指定可能
-                    val status = if (args.size >= 2){
-                        try {
-                            Region.TaxStatus.valueOf(args[1].uppercase())
-                        }catch (e:IllegalArgumentException){
-                            sendMessage(sender,"§c§l不正なTaxStatusです。指定可能: ${Region.TaxStatus.values().joinToString(",") { it.name }}")
-                            return true
-                        }
-                    }else{
-                        Region.TaxStatus.SUCCESS
+                    //引数無しの場合は指定可能なTaxStatus一覧を表示
+                    if (args.size < 2){
+                        sendMessage(sender,"§e§l/mreop starttax <TaxStatus> : 指定ステータスの土地を通常税額で徴収します")
+                        sendMessage(sender,"§7※滞納ペナルティ徴収は /mreop starttaxwarn を使用してください")
+                        sendMessage(sender,"§a指定可能なTaxStatus:")
+                        sendMessage(sender,"§7- §fSUCCESS §7: 正常(支払い済み)")
+                        sendMessage(sender,"§7- §fWARN §7: 滞納中")
+                        sendMessage(sender,"§7- §fFREE §7: 免税")
+                        sendMessage(sender,"§7- §fERROR §7: 通常徴収のBankエラーで保留中")
+                        sendMessage(sender,"§7- §fWARN_ERROR §7: 滞納徴収のBankエラーで保留中")
+                        return true
+                    }
+
+                    val status = try {
+                        Region.TaxStatus.valueOf(args[1].uppercase())
+                    }catch (e:IllegalArgumentException){
+                        sendMessage(sender,"§c§l不正なTaxStatusです。指定可能: ${Region.TaxStatus.values().joinToString(",") { it.name }}")
+                        return true
                     }
 
                     async.execute {
                         sender.sendMessage("税金の徴収開始(対象:$status)")
-                        //WARN系(滞納)はペナルティ/没収ロジック、それ以外は通常徴収
-                        if (status == Region.TaxStatus.WARN || status == Region.TaxStatus.WARN_ERROR){
-                            City.payTaxFromWarnRegion(status)
-                        }else{
-                            City.payTax(status)
-                        }
+                        //starttaxは全ステータスを通常税額で徴収する
+                        City.payTax(status)
                         sender.sendMessage("税金の徴収完了")
                     }
                 }

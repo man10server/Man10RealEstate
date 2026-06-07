@@ -118,7 +118,8 @@ class City constructor(val cityId:String){
             Bukkit.getLogger().warning("税金の支払いを行います")
 
             for (rg in rgList){
-                val amount = getTax(rg.id)
+                //payTaxは常に通常税額で徴収(ペナルティ徴収はpayTaxFromWarnRegion)
+                val amount = getTax(rg.id, applyPenalty = false)
 
                 //税額が0の場合は支払い処理を行わない
                 if (amount <= 0.0) continue
@@ -186,7 +187,8 @@ class City constructor(val cityId:String){
         }
 
         //税額を取得 ペナルティなども考慮済みの額
-        fun getTax(rgID:Int):Double{
+        //applyPenalty=false の場合、滞納(WARN系)でもペナルティを掛けず通常税額を返す
+        fun getTax(rgID:Int, applyPenalty: Boolean = true):Double{
             val rg = Region.regionMap[rgID]?:return 0.0
             if (rg.taxStatus == Region.TaxStatus.FREE)return 0.0
             val city = where(rg.teleport)?:return 0.0
@@ -197,7 +199,7 @@ class City constructor(val cityId:String){
             val height = rg.startPosition.third.coerceAtLeast(rg.endPosition.third) - rg.startPosition.third.coerceAtMost(rg.endPosition.third) + 1
 
             //WARN系(滞納)はペナルティ税額、それ以外(SUCCESS/ERROR)は通常税額
-            val penalized = rg.taxStatus == Region.TaxStatus.WARN || rg.taxStatus == Region.TaxStatus.WARN_ERROR
+            val penalized = applyPenalty && (rg.taxStatus == Region.TaxStatus.WARN || rg.taxStatus == Region.TaxStatus.WARN_ERROR)
             return if (penalized) width * height * city.data.tax * Plugin.penalty else width * height * city.data.tax
         }
     }
