@@ -5,6 +5,7 @@
 
 package red.man10.realestate
 
+import org.bukkit.Bukkit
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.BankAPI
@@ -40,7 +41,8 @@ class Plugin : JavaPlugin(), Listener {
 
         var ownableCityNum=-1 //住める都市の数
 
-        var useIFP=true
+        //ItemFrameProtector(任意導入)が読み込まれているか
+        fun isIFPEnabled(): Boolean = Bukkit.getPluginManager().getPlugin("ItemFrameProtector") != null
 
         private var payTax = true
 
@@ -72,11 +74,10 @@ class Plugin : JavaPlugin(), Listener {
         loadConfig()
 
         //ItemFrameProtectorは任意導入。導入されている時のみ額縁保護を有効にする
-        if (useIFP && server.pluginManager.getPlugin("ItemFrameProtector") != null){
+        if (isIFPEnabled()){
             server.pluginManager.registerEvents(IFPEvent, this)
             logger.info("ItemFrameProtector連携を有効にしました")
         }else{
-            useIFP = false
             logger.info("ItemFrameProtectorが見つからないため額縁保護を無効にしました")
         }
 
@@ -108,7 +109,6 @@ class Plugin : JavaPlugin(), Listener {
         payTax = config.getBoolean("taxTimer",true)
         saveResource("config.yml", false)
         ownableCityNum=config.getInt("ownableCityNum",-1)
-        useIFP=config.getBoolean("useIFP",true)
         otherMREServers=config.getStringList("otherMREServers")
     }
 

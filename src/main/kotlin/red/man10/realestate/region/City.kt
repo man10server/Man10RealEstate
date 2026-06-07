@@ -124,6 +124,11 @@ class City constructor(val cityId:String){
                         "Man10RealEstate Tax","税金の支払い")
                 if (!result.success){
                     val reason = "${result.errorMessage}(status=${result.httpStatus})"
+                    //409は残高不足。それ以外(API障害等)はペナルティを科さずスキップする
+                    if (result.httpStatus != 409){
+                        Logger.logger(rg.ownerUUID!!,"税金の支払い保留 理由:$reason",rg.id)
+                        continue
+                    }
                     Logger.logger(rg.ownerUUID!!,"滞納税金の支払い失敗 理由:$reason",rg.id)
                     rg.taxStatus = Region.TaxStatus.WARN
                     rg.asyncSave()
@@ -153,6 +158,11 @@ class City constructor(val cityId:String){
                         "Man10RealEstate Tax","税金の支払い(延滞)")
                 if (!result.success){
                     val reason = "${result.errorMessage}(status=${result.httpStatus})"
+                    //409は残高不足。それ以外(API障害等)はペナルティ(初期化)を科さずスキップする
+                    if (result.httpStatus != 409){
+                        Logger.logger(rg.ownerUUID!!,"滞納税金の支払い保留 理由:$reason",rg.id)
+                        continue
+                    }
                     Logger.logger(rg.ownerUUID!!,"税金の支払い失敗 初期化 理由:$reason",rg.id)
                     rg.initialize()
                     continue

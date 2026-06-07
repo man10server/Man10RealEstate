@@ -37,6 +37,7 @@ object IFPEvent : Listener {
         if (!(Event.getCurrentRegion(e.data.loc)?.canEditItemFrame(p)?:p.isOp)){
             sendMessage(p,"§7この額縁を触ることはできません！")
             e.isCancelled = true
+            return
         }
         sendMessage(p,"§a額縁を撤去しました")
         e.isCancelled = false

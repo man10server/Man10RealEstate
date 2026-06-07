@@ -45,7 +45,7 @@ class ManageUserMenu(p:Player,val user: User) : MenuFramework(p, 9,"${Bukkit.get
                 "§7§lチェストや樽:${if (user.permissions.contains(Permission.INVENTORY)) "§a§lo" else "§c§lx"}",
                 "§7§lドア:${if (user.permissions.contains(Permission.DOOR)) "§a§lo" else "§c§lx"}"
         )
-        if(Plugin.useIFP){
+        if(Plugin.isIFPEnabled()){
             lore.add("§7§l額縁:${if (user.permissions.contains(Permission.ITEM_FRAME)) "§a§lo" else "§c§lx"}")
         }
 
@@ -125,7 +125,7 @@ class PermissionMenu(p:Player,val user: User) : MenuFramework(p, 9,"${Bukkit.get
         }
 
         setButton(doorButton,6)
-        if(Plugin.useIFP) {
+        if(Plugin.isIFPEnabled()) {
             val itemFrameButton = Button(if (user.permissions.contains(Permission.ITEM_FRAME)) Material.EMERALD_BLOCK else Material.REDSTONE_BLOCK)
             itemFrameButton.title("§e§l額縁の編集")
             itemFrameButton.setClickAction {
