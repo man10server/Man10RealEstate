@@ -615,7 +615,7 @@ object Command:CommandExecutor {
                     §e§l/mreop init <id> <price> : 指定リージョンを初期化する
                     §e§l/mreop maxuser <city> <int> : 指定都市の上限人数を設定する
                     §e§l/mreop setprice <id/city名> <price> : 指定土地/都市内の土地全ての値段を変更する
-                    §e§l/mreop starttax <TaxStatus> : 指定ステータスの土地の税金を手動徴収する(省略時SUCCESS)
+                    §e§l/mreop starttax <TaxStatus> : 指定ステータスの土地の税金を手動徴収する(引数無しで一覧表示)
                     §e§l/mreop search : 指定ユーザーの持っている土地を確認する"
                     §e§l/mreop editcity <city> : 指定都市の編集コマンド一覧を表示する"
                     §e§l/mreop editrg <city> : 指定リージョンの編集コマンド一覧を表示する"
