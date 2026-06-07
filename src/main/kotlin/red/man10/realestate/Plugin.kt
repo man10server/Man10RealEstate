@@ -70,6 +70,16 @@ class Plugin : JavaPlugin(), Listener {
         getCommand("mreop")!!.setExecutor(Command)
 
         loadConfig()
+
+        //ItemFrameProtectorは任意導入。導入されている時のみ額縁保護を有効にする
+        if (useIFP && server.pluginManager.getPlugin("ItemFrameProtector") != null){
+            server.pluginManager.registerEvents(IFPEvent, this)
+            logger.info("ItemFrameProtector連携を有効にしました")
+        }else{
+            useIFP = false
+            logger.info("ItemFrameProtectorが見つからないため額縁保護を無効にしました")
+        }
+
         MySQLManager.mysqlQueue(this)
 
         Logger.logger("プラグイン起動")

@@ -31,9 +31,6 @@ import red.man10.realestate.mreEvent.MREInteractEvent
 import red.man10.realestate.region.user.Permission
 import red.man10.realestate.util.Utility
 import red.man10.realestate.util.Utility.sendMessage
-import tororo1066.itemframeprotector.api.event.IFPCause
-import tororo1066.itemframeprotector.api.event.IFPInteractEvent
-import tororo1066.itemframeprotector.api.event.IFPRemoveEvent
 
 object Event :Listener{
 
@@ -453,35 +450,7 @@ object Event :Listener{
 
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
-    fun itemFrameInteractEvent(e:IFPInteractEvent){
-        if(disableWorld.contains(e.data.loc.world.name))return
-        val p = e.entity
-        if (p !is Player)return
-        if (e.ifpCause == IFPCause.OP_STAFF)return
-        if (!(getCurrentRegion(e.data.loc)?.canEditItemFrame(p)?:p.isOp)){
-            sendMessage(p,"§7この額縁を触ることはできません！")
-            e.isCancelled = true
-            return
-        }
-        e.isCancelled = false
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    fun itemFrameRemoveEvent(e:IFPRemoveEvent){
-        if(disableWorld.contains(e.data.loc.world.name))return
-        val p = e.remover
-        if (p !is Player)return
-        if (e.ifpCause == IFPCause.OP_STAFF)return
-        if (!(getCurrentRegion(e.data.loc)?.canEditItemFrame(p)?:p.isOp)){
-            sendMessage(p,"§7この額縁を触ることはできません！")
-            e.isCancelled = true
-        }
-        sendMessage(p,"§a額縁を撤去しました")
-        e.isCancelled = false
-    }
-
-    private fun getCurrentRegion(loc:Location):Region?{
+    internal fun getCurrentRegion(loc:Location):Region?{
         Region.regionMap.values.forEach{ rg ->
 
             if (Utility.isWithinRange(loc,rg.startPosition,rg.endPosition,rg.world,rg.server)){

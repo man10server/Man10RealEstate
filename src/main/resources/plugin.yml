@@ -7,10 +7,10 @@ authors: [takatronix, forest611, JToTl]
 description: Man10 Real Estate Plugin
 softdepend:
   - Man10CommonLibs
+  - ItemFrameProtector
 depend:
   - Vault
   - Man10Bank
-  - ItemFrameProtector
 commands:
   mre:
     default: op
