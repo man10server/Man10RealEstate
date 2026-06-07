@@ -120,6 +120,9 @@ class City constructor(val cityId:String){
             for (rg in rgList){
                 val amount = getTax(rg.id)
 
+                //税額が0の場合は支払い処理を行わない
+                if (amount <= 0.0) continue
+
                 val result = Plugin.bank.tryWithdraw(rg.ownerUUID!!,amount,
                         "Man10RealEstate Tax","税金の支払い")
                 if (!result.success){
@@ -152,6 +155,9 @@ class City constructor(val cityId:String){
 
             for (rg in rgList){
                 val amount = getTax(rg.id)
+
+                //税額が0の場合は支払い処理を行わない
+                if (amount <= 0.0) continue
 
                 //ここで支払い失敗したら土地を手放す
                 val result = Plugin.bank.tryWithdraw(rg.ownerUUID!!,amount,
