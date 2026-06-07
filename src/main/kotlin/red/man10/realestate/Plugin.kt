@@ -5,6 +5,7 @@
 
 package red.man10.realestate
 
+import org.bukkit.Bukkit
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.BankAPI
@@ -40,7 +41,8 @@ class Plugin : JavaPlugin(), Listener {
 
         var ownableCityNum=-1 //住める都市の数
 
-        var useIFP=true
+        //ItemFrameProtector(任意導入)が読み込まれているか
+        fun isIFPEnabled(): Boolean = Bukkit.getPluginManager().getPlugin("ItemFrameProtector") != null
 
         private var payTax = true
 
@@ -70,6 +72,15 @@ class Plugin : JavaPlugin(), Listener {
         getCommand("mreop")!!.setExecutor(Command)
 
         loadConfig()
+
+        //ItemFrameProtectorは任意導入。導入されている時のみ額縁保護を有効にする
+        if (isIFPEnabled()){
+            server.pluginManager.registerEvents(IFPEvent, this)
+            logger.info("ItemFrameProtector連携を有効にしました")
+        }else{
+            logger.info("ItemFrameProtectorが見つからないため額縁保護を無効にしました")
+        }
+
         MySQLManager.mysqlQueue(this)
 
         Logger.logger("プラグイン起動")
@@ -98,7 +109,6 @@ class Plugin : JavaPlugin(), Listener {
         payTax = config.getBoolean("taxTimer",true)
         saveResource("config.yml", false)
         ownableCityNum=config.getInt("ownableCityNum",-1)
-        useIFP=config.getBoolean("useIFP",true)
         otherMREServers=config.getStringList("otherMREServers")
     }
 
@@ -134,6 +144,12 @@ class Plugin : JavaPlugin(), Listener {
                     Logger.logger("日付の変更を検知")
                     lastDay = LocalDateTime.now()
                     Region.regionMap.filterValues { it.span == 2 }.values.forEach { it.payRent() }
+
+                    //Bankエラーで保留中の土地を毎日リトライ(支払日以降に発生するため自然に支払日以降のみ動作)
+                    if (payTax){
+                        City.payTax(Region.TaxStatus.ERROR)
+                        City.payTaxFromWarnRegion(Region.TaxStatus.WARN_ERROR)
+                    }
                 }
 
                 //滞納支払日
